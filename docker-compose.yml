@@ -1,0 +1,30 @@
+services:
+  api:
+    build: .
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - EMBEDDINGS_PROVIDER=${EMBEDDINGS_PROVIDER:-openai}
+      - LLM_PROVIDER=${LLM_PROVIDER:-openai}
+      - CHROMA_DIR=${CHROMA_DIR:-.chroma}
+      - DOCS_DIR=${DOCS_DIR:-./project_docs}
+      - CHUNK_SIZE=${CHUNK_SIZE:-1200}
+      - CHUNK_OVERLAP=${CHUNK_OVERLAP:-200}
+      - TOP_K=${TOP_K:-6}
+      - MIN_SCORE=${MIN_SCORE:-0.24}
+    volumes:
+      - ./.chroma:${CHROMA_DIR:-.chroma}
+      - ./project_docs:${DOCS_DIR:-./project_docs}
+      - ./:/app
+    ports:
+      - "${PORT_API:-8000}:8000"
+    command: sh -c "uvicorn api.app:app --host 0.0.0.0 --port 8000"
+
+  ui:
+    build: .
+    environment:
+      - PORT_UI=${PORT_UI:-8501}
+    volumes:
+      - ./:/app
+    ports:
+      - "${PORT_UI:-8501}:8501"
+    command: sh -c "streamlit run ui/app.py --server.port ${PORT_UI:-8501} --server.address 0.0.0.0"
