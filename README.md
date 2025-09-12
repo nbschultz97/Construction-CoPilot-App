@@ -2,33 +2,39 @@
 
 Local RAG app for contractors: drag in PDFs, ask questions, get answers **with citations** to (filename, page).
 
-## Quick start
+## One-click run (local)
 
 ```bash
-cp .env.example .env
-# (optional) put your OPENAI_API_KEY in .env
+./run.sh
+# Open http://localhost:8501
+```
 
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+## Docker
 
-# Start API
-uvicorn api.app:app --reload --port 8000
-
-# In a new terminal, start UI
-streamlit run ui/app.py --server.port 8501
-
-Open UI at http://localhost:8501
-
-Docker (optional)
-
-cp .env.example .env
-# add OPENAI_API_KEY if using OpenAI
-
+```bash
 docker compose up --build
+# UI: http://localhost:8501  API: http://localhost:8000
+```
 
-Notes
-•Data stays local in `.chroma/` and `project_docs/`.
-•If no OPENAI_API_KEY is set, the app uses:
-•local embeddings via sentence-transformers (BAAI/bge-small-en-v1.5)
-•an “extractive” answer mode (returns best snippet + citations)
-•OCR is attempted for low-text pages if Tesseract is installed; otherwise skipped.
+## OCR (optional)
+
+- macOS: `brew install tesseract`
+- Debian/Ubuntu: `sudo apt-get update && sudo apt-get install -y tesseract-ocr`
+- Docker image already includes Tesseract.
+
+## Troubleshooting
+
+- API not reachable → check port 8000 in use, see `.api.log`
+- OCR missing → install Tesseract or use Docker
+- Empty answers → confirm docs in `project_docs/`, re-index from UI
+
+## Feature matrix
+
+| Feature | Status |
+| --- | --- |
+| Citations | ✅ |
+| Local embeddings | ✅ |
+| OCR (Tesseract) | ⚠️ if not installed |
+| Config panel | ✅ |
+| Docs table | ✅ |
+| Export roadmap | 📋 |
