@@ -1,0 +1,34 @@
+name: CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tesseract-ocr
+      - name: Python deps
+        run: |
+          python -m venv .venv
+          . .venv/bin/activate
+          pip install --upgrade pip wheel
+          pip install -r requirements.txt pytest
+      - name: Start API
+        run: |
+          . .venv/bin/activate
+          nohup uvicorn api.app:app --host 0.0.0.0 --port 8000 &
+          sleep 3
+      - name: Run tests
+        env:
+          API_BASE: http://localhost:8000
+        run: |
+          . .venv/bin/activate
+          pytest -q

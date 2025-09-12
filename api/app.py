@@ -1,4 +1,8 @@
-import os, uuid
+import os
+import uuid
+import shutil
+from pathlib import Path
+
 from fastapi import FastAPI, UploadFile, File, Form, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
@@ -24,6 +28,43 @@ _PROJECT_INDEX = {}
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+# --- helper checks ---
+def _has_tesseract() -> bool:
+    return shutil.which("tesseract") is not None
+
+
+def _chroma_writable() -> bool:
+    p = Path(".chroma")
+    try:
+        p.mkdir(parents=True, exist_ok=True)
+        testfile = p / ".write_test"
+        with open(testfile, "w") as f:
+            f.write("ok")
+        testfile.unlink(missing_ok=True)
+        return True
+    except Exception:
+        return False
+
+
+def _docs_indexed_count() -> int:
+    d = Path("project_docs")
+    if not d.exists():
+        return 0
+    return sum(1 for x in d.iterdir() if x.is_file())
+
+
+@app.get("/healthz")
+def healthz():
+    embedding_model = os.getenv("EMBEDDING_MODEL", "BAAI/bge-small-en-v1.5")
+    return {
+        "api": "ok",
+        "chroma": _chroma_writable(),
+        "ocr": _has_tesseract(),
+        "embedding_model": embedding_model,
+        "docs_indexed": _docs_indexed_count(),
+    }
 
 
 @app.post("/ingest", response_model=IngestResponse)
