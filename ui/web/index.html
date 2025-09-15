@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Construction Doc Copilot Web Client</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>👷 Construction Doc Copilot</h1>
+      <p>Browser client for the RAG backend. Point it at your FastAPI service and operate from anywhere.</p>
+    </header>
+
+    <main>
+      <section id="connection" class="panel">
+        <h2>Connect to API</h2>
+        <p class="hint">
+          Host the FastAPI service (port 8000 by default) behind HTTPS if you load this page via GitHub Pages or any HTTPS origin. Mixed content will be blocked by browsers.
+        </p>
+        <div class="control-group">
+          <label for="apiBase">API base URL</label>
+          <input id="apiBase" type="url" placeholder="https://your-api.example.com" autocomplete="off" />
+          <button id="saveApiBase" type="button">Save &amp; check status</button>
+        </div>
+        <p class="hint">Value is cached locally so returning operators reuse the same endpoint.</p>
+        <div class="status" id="healthStatus"></div>
+      </section>
+
+      <section id="ingest" class="panel">
+        <h2>Ingest documents</h2>
+        <form id="ingestForm">
+          <div class="control-group">
+            <label for="ingestProjectId">Project ID (optional)</label>
+            <input id="ingestProjectId" name="project_id" type="text" placeholder="Leave blank to auto-generate" />
+          </div>
+          <div class="control-group">
+            <label for="zipUpload">ZIP of PDFs</label>
+            <input id="zipUpload" name="zipfile" type="file" accept=".zip" />
+          </div>
+          <div class="control-group">
+            <label for="folderPath">Server-side folder path (optional)</label>
+            <input id="folderPath" name="folder_path" type="text" placeholder="/path/on/server/project_docs" />
+          </div>
+          <div class="control-group inline">
+            <label>
+              <input id="ocrToggle" name="ocr" type="checkbox" />
+              Enable OCR for scanned pages
+            </label>
+          </div>
+          <button type="submit">Send to API</button>
+        </form>
+        <div class="status" id="ingestStatus"></div>
+      </section>
+
+      <section id="projects" class="panel">
+        <h2>Tracked projects</h2>
+        <div class="control-group inline">
+          <button id="refreshProjects" type="button">Refresh list</button>
+        </div>
+        <div id="projectsTable" class="table"></div>
+      </section>
+
+      <section id="ask" class="panel">
+        <h2>Ask your documents</h2>
+        <form id="askForm">
+          <div class="control-group">
+            <label for="askProjectId">Project ID</label>
+            <input id="askProjectId" type="text" required placeholder="project id from ingest" />
+          </div>
+          <div class="control-group">
+            <label for="question">Question</label>
+            <input id="question" type="text" required placeholder="When is substantial completion required?" />
+          </div>
+          <div class="control-group">
+            <label for="topK">Top-K results</label>
+            <input id="topK" type="number" min="1" max="50" value="5" />
+          </div>
+          <button type="submit">Ask</button>
+        </form>
+        <div class="status" id="askStatus"></div>
+        <article id="answer"></article>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        Built for lightweight field deployments. Source lives alongside the Streamlit UI under <code>ui/web</code>.
+      </p>
+    </footer>
+
+    <template id="projectRowTemplate">
+      <div class="row">
+        <div class="cell project-id"></div>
+        <div class="cell doc-count"></div>
+        <div class="cell chunk-count"></div>
+        <div class="cell doc-list"></div>
+      </div>
+    </template>
+
+    <template id="citationTemplate">
+      <section class="citation">
+        <p class="citation-text"></p>
+        <img class="citation-preview" loading="lazy" alt="Document preview" />
+      </section>
+    </template>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>
